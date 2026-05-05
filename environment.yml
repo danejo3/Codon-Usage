@@ -1,0 +1,13 @@
+dependencies:
+  - imagemagick
+  - numpy
+  - matplotlib
+  - megahit
+  - minimap2
+  - scikit-learn
+  - seaborn
+  - seqkit
+  - spades
+  - pandas
+  - prodigal
+  - python
