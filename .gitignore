@@ -1,4 +1,5 @@
 .snakemake
+__pycache__
 references
 sample
 sandbox*
