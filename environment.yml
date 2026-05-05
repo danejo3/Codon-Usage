@@ -1,13 +1,18 @@
 dependencies:
+  - biopython
+  - fastp
+  - gzip
   - imagemagick
   - numpy
   - matplotlib
   - megahit
   - minimap2
+  - samtools
   - scikit-learn
   - seaborn
   - seqkit
+  - snakemake
   - spades
   - pandas
   - prodigal
-  - python
+  - python=3.11
