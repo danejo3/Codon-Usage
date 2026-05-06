@@ -181,7 +181,7 @@ rule contig_and_reference_colors:
                     accession = parts[0]
                     species = " ".join(parts[1:3])
                     species_map[accession] = species
-        
+
         # Map accessions to species
         df = pd.read_csv(input.mapped, sep="\t", header=None)
         col = df.columns[1]
@@ -277,25 +277,21 @@ rule rscu_on_cds:
 
 
 def combine_tables(df, gc, cov, final):
-    # PCA and capture 95% variance
-    pca = PCA(n_components=0.95)
-    X_pca = pca.fit_transform(df.T)
-    pca_df = pd.DataFrame(
-        X_pca, index=df.columns, columns=[f"PC{i+1}" for i in range(X_pca.shape[1])]
-    )
+    # Transpose
+    kmer_df = df.T
 
-    # Parse GC content table and append it to table
+    # Add GC content
     gc_data = gc.set_index(0)[1].to_dict()
-    pca_df["gc_content"] = pca_df.index.map(gc_data)
+    kmer_df["gc_content"] = kmer_df.index.map(gc_data)
 
-    # Parse coverage depth table and append it to table
+    # Add coverage
     coverage_data = cov.set_index("#rname")["meandepth"].to_dict()
-    pca_df["coverage_depth"] = pca_df.index.map(coverage_data)
+    kmer_df["coverage_depth"] = kmer_df.index.map(coverage_data)
 
-    # Normalize all features
-    scaler = StandardScaler()
-    scaled = scaler.fit_transform(pca_df)
-    scaled_df = pd.DataFrame(scaled, index=pca_df.index, columns=pca_df.columns)
+    # Scale
+    scaler_final = StandardScaler()
+    scaled = scaler_final.fit_transform(kmer_df)
+    scaled_df = pd.DataFrame(scaled, index=kmer_df.index, columns=kmer_df.columns)
     scaled_df.to_csv(final, sep="\t")
 
 
@@ -320,10 +316,8 @@ rule before_weights:
         final="analysis/before_weights/{feature}/final.tsv",
     run:
         df = pd.read_csv(input.combined, sep="\t", index_col=0)
-
-        # Balance PC columns
-        pc_cols = df.columns.str.startswith("PC")
-        df.loc[:, pc_cols] *= (1 / np.sqrt(pc_cols.sum()))
+        kmer_cols = df.columns[:-2]
+        df[kmer_cols] = df[kmer_cols] / np.sqrt(len(kmer_cols))
         df.to_csv(output.final, sep="\t")
 
 
@@ -334,23 +328,11 @@ rule apply_weights:
         final="analysis/after_weights/{feature}/final.tsv",
     run:
         df = pd.read_csv(input.combined, sep="\t", index_col=0)
-
-        pc_cols = df.columns.str.startswith("PC")
-
-        # Build weights
-        weight_series = pd.Series(
-            np.select(
-                [pc_cols, df.columns == "gc_content", df.columns == "coverage_depth"],
-                [2, 1, 2],
-                default=0,
-            ),
-            index=df.columns,
-        )
-
-        # Apply weights and balance PC columns
-        weighted_df = df.mul(weight_series, axis=1)
-        weighted_df.loc[:, pc_cols] *= (1 / np.sqrt(pc_cols.sum()))
-        weighted_df.to_csv(output.final, sep="\t")
+        kmer_cols = df.columns[:-2]
+        df[kmer_cols] = df[kmer_cols] * 10 / np.sqrt(len(kmer_cols))
+        df["gc_content"] *= 1
+        df["coverage_depth"] *= 5
+        df.to_csv(output.final, sep="\t")
 
 
 rule plot_2d_pca:

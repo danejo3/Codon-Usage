@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
+from scipy.spatial.distance import cdist
 from sklearn.decomposition import PCA
 import sys
 
@@ -9,13 +10,19 @@ import sys
 def plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title):
     # Read table data
     df = pd.read_csv(final_tsv, sep="\t", index_col=0)
+
     feature_names = df.columns
 
     # PCA down to 2-D
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(df.values)
-
     df_pca = pd.DataFrame(X_pca, index=df.index, columns=["PC1", "PC2"])
+
+    # Filter out outlier points in plot
+    center = df_pca.mean().values.reshape(1, -1)
+    distances = cdist(df_pca, center)
+    threshold = np.percentile(distances, 95)  # keep 95% closest points
+    df_pca = df_pca[distances.flatten() < threshold]
 
     # Colors
     color_df = pd.read_csv(color_contigs_tsv, sep="\t")
@@ -38,13 +45,8 @@ def plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title):
         linewidth=0.2,
     )
 
-    # Zoom to clip out extreme outliers
-    for col in ["PC1", "PC2"]:
-        ax.set_xlim(np.percentile(df_pca["PC1"], 1), np.percentile(df_pca["PC1"], 99))
-        ax.set_ylim(np.percentile(df_pca["PC2"], 1), np.percentile(df_pca["PC2"], 99))
-
     # Feature arrows
-    scale = 0.5
+    scale = 0.75
     for i, feature in enumerate(feature_names):
         x, y = loadings[i] * scale
         ax.arrow(
