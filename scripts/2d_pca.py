@@ -3,11 +3,15 @@ import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score
 import sys
 
 
-def plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title):
+def plot(
+    final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title, score_txt
+):
     # Read table data
     df = pd.read_csv(final_tsv, sep="\t", index_col=0)
 
@@ -27,7 +31,6 @@ def plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title):
     # Colors
     color_df = pd.read_csv(color_contigs_tsv, sep="\t")
     color_map = dict(zip(color_df.iloc[:, 0], color_df.iloc[:, 1]))
-
     point_colors = df_pca.index.map(color_map).fillna("black").tolist()
 
     # Loadings
@@ -46,7 +49,7 @@ def plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title):
     )
 
     # Feature arrows
-    scale = 0.75
+    scale = 0.5
     for i, feature in enumerate(feature_names):
         x, y = loadings[i] * scale
         ax.arrow(
@@ -78,6 +81,13 @@ def plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title):
     ]
     ax.legend(handles=legend_handles, bbox_to_anchor=(1.05, 1), loc="upper left")
 
+    # Silhouette score
+    kmeans = KMeans(n_clusters=len(reference_colors_tsv) - 2)
+    labels = kmeans.fit_predict(df_pca)
+    score = silhouette_score(df_pca, labels)
+    with open(score_txt, "w") as f:
+        f.write(str(score))
+
     # Origin lines
     ax.axhline(0, color="black", linewidth=0.5)
     ax.axvline(0, color="black", linewidth=0.5)
@@ -94,5 +104,6 @@ if __name__ == "__main__":
     reference_colors_tsv = sys.argv[3]
     plot_png = sys.argv[4]
     title = sys.argv[5].upper().replace("_", " ")
+    score_txt = sys.argv[6]
 
-    plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title)
+    plot(final_tsv, color_contigs_tsv, reference_colors_tsv, plot_png, title, score_txt)

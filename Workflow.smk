@@ -29,7 +29,8 @@ rule all:
             weights=WEIGHTS,
             feature=FEATURES,
         ),
-        expand("analysis/{weights}/combined.png", weights=WEIGHTS),
+        expand("analysis/{weights}/combined_pca_plots.png", weights=WEIGHTS),
+        expand("analysis/{weights}/combined_silhouette_scores.txt", weights=WEIGHTS),
 
 
 rule copy_input_reads:
@@ -182,7 +183,7 @@ rule contig_and_reference_colors:
                     species = " ".join(parts[1:3])
                     species_map[accession] = species
 
-        # Map accessions to species
+                # Map accessions to species
         df = pd.read_csv(input.mapped, sep="\t", header=None)
         col = df.columns[1]
         df[col] = df[col].map(species_map).fillna("Unmapped")
@@ -199,7 +200,7 @@ rule contig_and_reference_colors:
         if "Unmapped" in unique_species:
             colors["Unmapped"] = "black"
 
-        # Apply colors to dataframe
+            # Apply colors to dataframe
         ref_df = pd.DataFrame(list(colors.items()), columns=["species", "color"])
         ref_df.to_csv(output.reference_colors, sep="\t", index=False)
         df[col] = df[col].map(colors)
@@ -342,9 +343,10 @@ rule plot_2d_pca:
         reference_colors=rules.contig_and_reference_colors.output.reference_colors,
     output:
         plot="analysis/{weights}/{feature}/2d_pca.png",
+        score="analysis/{weights}/{feature}/score.txt",
     shell:
         """
-        python {SCRIPTS_DIR}/2d_pca.py {input.final} {input.contig_colors} {input.reference_colors} {output.plot} "{wildcards.weights} - {wildcards.feature}"
+        python {SCRIPTS_DIR}/2d_pca.py {input.final} {input.contig_colors} {input.reference_colors} {output.plot} "{wildcards.weights} - {wildcards.feature}" {output.score}
         """
 
 
@@ -355,8 +357,26 @@ rule combine_images:
         codon="analysis/{weights}/codon_usage_on_cds/2d_pca.png",
         rscu="analysis/{weights}/rscu_on_cds/2d_pca.png",
     output:
-        combined="analysis/{weights}/combined.png",
+        combined="analysis/{weights}/combined_pca_plots.png",
     shell:
         """
         magick {input} +append {output.combined}
+        """
+
+
+rule combine_silhouette_scores:
+    input:
+        tetranucleotide="analysis/{weights}/tetranucleotide_frequency_on_contigs/score.txt",
+        trinucleotide="analysis/{weights}/trinucleotide_frequency_on_cds/score.txt",
+        codon="analysis/{weights}/codon_usage_on_cds/score.txt",
+        rscu="analysis/{weights}/rscu_on_cds/score.txt",
+    output:
+        combined="analysis/{weights}/combined_silhouette_scores.txt",
+    shell:
+        """
+        echo -e "feature\tsilhouette_score" > {output.combined}
+        echo -e "tetranucleotide\t$(cat {input.tetranucleotide})" >> {output.combined}
+        echo -e "trinucleotide\t$(cat {input.trinucleotide})" >> {output.combined}
+        echo -e "codon\t$(cat {input.codon})" >> {output.combined}
+        echo -e "rscu\t$(cat {input.rscu})" >> {output.combined}
         """

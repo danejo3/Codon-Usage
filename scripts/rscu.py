@@ -61,7 +61,9 @@ class RSCU(Kmers):
 
         # Build DataFrame and normalize data to frequencies
         self.frequency_table = (
-            pd.DataFrame.from_dict(all_rscu, orient="columns").fillna(0).astype("float64")
+            pd.DataFrame.from_dict(all_rscu, orient="columns")
+            .fillna(0)
+            .astype("float64")
         )
 
     def count(self, sequence, counter):
