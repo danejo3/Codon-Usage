@@ -15,7 +15,28 @@ git clone https://github.com/danejo3/Codon-Usage.git
 cd Codon-Usage
 ```
 
-## Running the Workflow
+## Usage
+
+```
+usage: cli_parser.py [-h] -r REFERENCES [REFERENCES ...] [-w WORKDIR] [-t THREADS] reads [reads ...]
+
+A command-line interface for running Snakemake workflows that generate tetranucleotide and trinucleotide frequency profiles, codon usage statistics, and RSCU
+plots.
+
+positional arguments:
+  reads                 input FASTQ files (max 2)
+
+options:
+  -h, --help            show this help message and exit
+  -r REFERENCES [REFERENCES ...], --references REFERENCES [REFERENCES ...]
+                        reference FASTA files
+  -w WORKDIR, --workdir WORKDIR
+                        output directory for workflow files (default: current directory)
+  -t THREADS, --threads THREADS
+                        number of threads to use (default: 1)
+```
+
+## Example of Running the Workflow
 
 To run the workflow, provide the input FASTQ reads and reference FASTA files using the following example command:
 
