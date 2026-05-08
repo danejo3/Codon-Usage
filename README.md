@@ -59,3 +59,7 @@ Principal component analysis (PCA) demonstrated that contig sequence composition
 Applying feature weights substantially improved cluster densities. PCA revealed strong taxonomic separation across all weighted feature sets (Fig. 2A–D). For tetranucleotide frequency (Fig. 2A), trinucleotide frequency (Fig. 2B), codon usage (Fig. 2C), and relative synonymous codon usage (RSCU; Fig. 2D), adding weights tightened the spatial distribution of contigs and shifted previously linear patterns into compact drop-like clusters. In particular, the E. coli cluster exhibited less spread along PC1 and adopted a more compact distribution. Comparable reductions in linear trajectories were observed for the other species as well.
 
 <img width="6550" height="1500" alt="image" src="https://github.com/user-attachments/assets/d00e533d-733b-491d-a444-297f0665ed8b" />
+
+## Test Dataset and References
+
+Users rereate the plots shown above by downloading and using the HMP mock staggered dataset and their references here. https://osf.io/7sbtx/overview.
