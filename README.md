@@ -66,4 +66,4 @@ Although weighted ordinations appeared more compact, quantitative clustering per
 
 ## Test Dataset and References
 
-Users rereate the plots shown above by downloading and using the HMP mock staggered dataset and their references here. https://osf.io/7sbtx/overview.
+Users can recreate the plots shown above by downloading and using the HMP mock staggered dataset and their references here. https://osf.io/7sbtx/overview.
